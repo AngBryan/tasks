@@ -13,6 +13,10 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 
 public class Datamanager {
+    // Extracted constants to eliminate magic literalx
+    public static final String TODO = "T";
+    public static final String DEADLINE = "D";
+    public static final String EVENT = "E";
     private File dataFile;
 
     public File getDataFile() {
@@ -39,13 +43,16 @@ public class Datamanager {
     }
 
     private ArrayList readFile() throws IOException {
+        // Guard clause
         if (!dataFile.exists()) {
             throw new FileNotFoundException();
         }
+        // Guard clause
         if (dataFile.length() == 0) {
             System.out.println("empty file");
             throw new IOException();
         }
+        // Happy path
         ArrayList<String> dataItems = (ArrayList) Files.readAllLines(dataFile.toPath(), Charset.defaultCharset());
 
         return dataItems;
@@ -57,7 +64,8 @@ public class Datamanager {
             ArrayList<String> dataItems = readFile();
             taskList = parse(dataItems);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Cannot load data; reason: " + e.getMessage());
+            e.printStackTrace(); // Printing stack trace is not the most useful thing to do! You can log it if you wish
         }
         return taskList;
     }
@@ -68,15 +76,15 @@ public class Datamanager {
             String taskDescription = getTaskDescription(line);
             String taskType = getTaskType(line);
             switch (taskType) {
-            case "T":
+            case TODO:
                 Todo todo = new Todo(taskDescription);
                 allTasks.add(todo);
                 break;
-            case "D":
+            case DEADLINE:
                 Deadline deadline = new Deadline(taskDescription);
                 allTasks.add(deadline);
                 break;
-            case "E":
+            case EVENT:
                 Event event = new Event(taskDescription);
                 allTasks.add(event);
                 break;
@@ -88,6 +96,11 @@ public class Datamanager {
         return allTasks;
     }
 
+    /**
+     * Returns task type
+     * Note: Extracted string replacement to ensure better SLAP in the caller method
+     * @param inputLine
+     */
     private static String getTaskType(String inputLine) {
         String taskType = inputLine.substring(0, 2);
         taskType = taskType.replace("[", "");
@@ -95,6 +108,11 @@ public class Datamanager {
         return taskType;
     }
 
+    /**
+     * Returns task description
+     * Note: Extracted substringing to ensure better SLAP in the caller method
+     * @param inputLine
+     */
     private static String getTaskDescription(String inputLine) {
         String taskDescription = inputLine.substring(4);
         return taskDescription;
